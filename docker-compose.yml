@@ -1,0 +1,78 @@
+version: '3.7'
+
+services:
+
+  phpfpm:
+    image: bitnami/php-fpm:latest
+    container_name: phpfpm
+    volumes:
+      - ./app:/app
+    networks:
+      - balance
+      
+  proxy:
+    image: nginx:alpine
+    container_name: proxy
+    volumes:
+      - ./app:/app
+      - ./config/proxy.conf:/etc/nginx/conf.d/z-overrides.conf
+    ports:
+      - 80:80
+    depends_on:
+      - site1-loadbalance1
+      - site1-loadbalance2
+      - site1-loadbalance3
+      - site2
+      - site3
+      - phpfpm
+    networks:
+      - balance
+ 
+  site1-loadbalance1:
+    image: nginx:alpine
+    container_name: site1-loadbalance1
+    volumes:
+      - ./app:/app
+      - ./config/site1.loadbalance1.conf:/etc/nginx/conf.d/z-overrides.conf
+    networks:
+      - balance
+ 
+  site1-loadbalance2:
+    image: nginx:alpine
+    container_name: site1-loadbalance2
+    volumes:
+      - ./app:/app
+      - ./config/site1.loadbalance2.conf:/etc/nginx/conf.d/z-overrides.conf
+    networks:
+      - balance
+ 
+  site1-loadbalance3:
+    image: nginx:alpine
+    container_name: site1-loadbalance3
+    volumes:
+      - ./app:/app
+      - ./config/site1.loadbalance3.conf:/etc/nginx/conf.d/z-overrides.conf
+    networks:
+      - balance
+ 
+  site2:
+    image: nginx:alpine
+    container_name: site2
+    volumes:
+      - ./app:/app
+      - ./config/site2.conf:/etc/nginx/conf.d/z-overrides.conf
+    networks:
+      - balance
+ 
+  site3:
+    image: nginx:alpine
+    container_name: site3
+    volumes:
+      - ./app:/app
+      - ./config/site3.conf:/etc/nginx/conf.d/z-overrides.conf
+    networks:
+      - balance
+ 
+networks:
+   balance:
+     driver: bridge
